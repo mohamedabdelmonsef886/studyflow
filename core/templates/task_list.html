@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>All Tasks</h1>
+    <a href="{% url 'task_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Add Task
+    </a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Course</th>
+                <th>Priority</th>
+                <th>Deadline</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in tasks %}
+            <tr>
+                <td>{{ task.title }}</td>
+                <td>{{ task.course.name|default:"-" }}</td>
+                <td>
+                    <span class="badge bg-{% if task.priority == 'high' %}danger{% elif task.priority == 'medium' %}warning{% else %}info{% endif %}">
+                        {{ task.get_priority_display }}
+                    </span>
+                </td>
+                <td>{{ task.deadline }}</td>
+                <td>
+                    {% if task.completed %}
+                        <span class="badge bg-success">Completed</span>
+                    {% elif task.is_overdue %}
+                        <span class="badge bg-danger">Overdue</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Pending</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="post" action="{% url 'task_complete' task.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-{% if task.completed %}warning{% else %}success{% endif %}">
+                            {% if task.completed %}Undo{% else %}Complete{% endif %}
+                        </button>
+                    </form>
+                    <a href="{% url 'task_update' task.id %}" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{% url 'task_delete' task.id %}" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center">No tasks yet. Create your first task!</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

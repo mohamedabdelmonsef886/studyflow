@@ -1,0 +1,319 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="display-5 mb-4">Welcome back, {{ user.username }}!</h1>
+        <div class="mb-3">
+            <span class="badge bg-primary fs-6">🔥 Streak: {{ streak }} days</span>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">Total Tasks</h5>
+                <h2>{{ total_tasks }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Completed Tasks</h5>
+                <h2>{{ completed_tasks }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">Pending Tasks</h5>
+                <h2>{{ pending_tasks }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <h5 class="card-title">Overdue Tasks</h5>
+                <h2>{{ overdue_tasks }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notifications -->
+{% if notifications.overdue or notifications.due_soon %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">⚠️ Smart Notifications</h5>
+            </div>
+            <div class="card-body">
+                {% for task in notifications.overdue %}
+                <div class="alert alert-danger">
+                    <strong>OVERDUE:</strong> {{ task.title }} - Deadline: {{ task.deadline }}
+                </div>
+                {% endfor %}
+                {% for task in notifications.due_soon %}
+                <div class="alert alert-warning">
+                    <strong>DUE SOON:</strong> {{ task.title }} - Deadline: {{ task.deadline }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Charts and Insights -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5>Course Progress</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="courseProgressChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5>Task Completion</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="taskCompletionChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Productivity Insights -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card {% if insights.on_track %}border-success{% else %}border-warning{% endif %}">
+            <div class="card-header">
+                <h5>📊 Productivity Insights</h5>
+            </div>
+            <div class="card-body">
+                <h4>Status: <span class="{% if insights.on_track %}text-success{% else %}text-warning{% endif %}">{{ insights.status }}</span></h4>
+                <p>On-time completion rate: <strong>{{ insights.on_time_percentage }}%</strong></p>
+                <p>Estimated days to complete pending tasks: <strong>{{ insights.estimated_days }}</strong></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Daily and Weekly Schedule -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">📅 Today's Schedule</h5>
+            </div>
+            <div class="card-body">
+                {% if daily_tasks %}
+                    <ul class="list-group">
+                    {% for task in daily_tasks %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ task.title }}
+                            <span class="badge bg-{% if task.priority == 'high' %}danger{% elif task.priority == 'medium' %}warning{% else %}info{% endif %}">
+                                {{ task.get_priority_display }}
+                            </span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No tasks due today. Great job!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">📆 This Week's Schedule</h5>
+            </div>
+            <div class="card-body">
+                {% if weekly_tasks %}
+                    <ul class="list-group">
+                    {% for task in weekly_tasks %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ task.title }}</strong><br>
+                                <small>Due: {{ task.deadline }}</small>
+                            </div>
+                            <span class="badge bg-{% if task.priority == 'high' %}danger{% elif task.priority == 'medium' %}warning{% else %}info{% endif %}">
+                                {{ task.get_priority_display }}
+                            </span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No tasks scheduled for this week.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pomodoro Timer -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">🍅 Pomodoro Timer</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="display-1 mb-3" id="timer">25:00</div>
+                <div class="mb-3">
+                    <span class="badge bg-secondary" id="timer-mode">Focus Time</span>
+                </div>
+                <button class="btn btn-primary" id="startBtn">Start</button>
+                <button class="btn btn-warning" id="pauseBtn">Pause</button>
+                <button class="btn btn-danger" id="resetBtn">Reset</button>
+            </div>
+        </div>
+    </div>
+</div>
+{{ course_names|json_script:"courseNames" }}
+{{ course_progress|json_script:"courseProgress" }}
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    // استخراج البيانات من json_script
+    const courseNamesElem = document.getElementById('courseNames');
+    const courseProgressElem = document.getElementById('courseProgress');
+    let courseNames = [];
+    let courseProgress = [];
+    // تأكد من وجود العناصر قبل استخدامها
+    if (!courseNamesElem || !courseProgressElem) {
+        console.error("Could not find json_script elements!");
+    } else {
+        courseNames = JSON.parse(courseNamesElem.textContent);
+        courseProgress = JSON.parse(courseProgressElem.textContent);
+        
+        console.log("Names from json_script:", courseNames);
+        console.log("Progress from json_script:", courseProgress);
+    }
+
+    // Course Progress Chart
+    const courseCtx = document.getElementById('courseProgressChart').getContext('2d');
+    new Chart(courseCtx, {
+        type: 'bar', 
+        data: {
+            labels: courseNames,
+            datasets: [{
+                label: 'Progress (%)',
+                data: courseProgress,
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+
+    // Task Completion Chart
+    const taskCtx = document.getElementById('taskCompletionChart').getContext('2d');
+    new Chart(taskCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Completed', 'Pending'],
+            datasets: [{
+                data: [{{ completed_tasks }}, {{ pending_tasks }}],
+                backgroundColor: ['#28a745', '#ffc107'],
+                borderWidth: 1
+            }]
+        }
+    });
+
+    // Pomodoro Timer
+    let timeLeft = 25 * 60;
+    let timerId = null;
+    let isFocusMode = true;
+    const timerDisplay = document.getElementById('timer');
+    const modeDisplay = document.getElementById('timer-mode');
+    
+    function updateDisplay() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    
+    function switchMode() {
+        if (isFocusMode) {
+            timeLeft = 5 * 60;
+            isFocusMode = false;
+            modeDisplay.textContent = 'Break Time';
+            modeDisplay.classList.remove('bg-primary');
+            modeDisplay.classList.add('bg-success');
+        } else {
+            timeLeft = 25 * 60;
+            isFocusMode = true;
+            modeDisplay.textContent = 'Focus Time';
+            modeDisplay.classList.remove('bg-success');
+            modeDisplay.classList.add('bg-primary');
+        }
+        updateDisplay();
+    }
+    
+    function tick() {
+        if (timeLeft <= 0) {
+            clearInterval(timerId);
+            timerId = null;
+            switchMode();
+            startTimer();
+            new Audio('https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3').play().catch(e => console.log('Audio not supported'));
+        } else {
+            timeLeft--;
+            updateDisplay();
+        }
+    }
+    
+    function startTimer() {
+        if (timerId === null) {
+            timerId = setInterval(tick, 1000);
+        }
+    }
+    
+    document.getElementById('startBtn').addEventListener('click', startTimer);
+    document.getElementById('pauseBtn').addEventListener('click', () => {
+        if (timerId) {
+            clearInterval(timerId);
+            timerId = null;
+        }
+    });
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        clearInterval(timerId);
+        timerId = null;
+        timeLeft = 25 * 60;
+        isFocusMode = true;
+        modeDisplay.textContent = 'Focus Time';
+        modeDisplay.classList.add('bg-primary');
+        modeDisplay.classList.remove('bg-success');
+        updateDisplay();
+    });
+    
+    updateDisplay();
+</script>
+
+{% endblock %}
