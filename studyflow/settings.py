@@ -80,8 +80,8 @@ DATABASES = {
 
 }
 
-if config('DATABASE_URL', default=''):
-    DATABASES['default'] = dj_database_url.config(default=config('DATABASE_URL'))
+# if config('DATABASE_URL', default=''):
+#     DATABASES['default'] = dj_database_url.config(default=config('DATABASE_URL'))
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -119,12 +119,12 @@ USE_TZ = True
 
 # ملفات الـ Static
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'static']
 # إضافة Whitenoise للملفات الثابتة
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 # STATIC_URL = 'static/'
 # STATICFILES_DIRS = [BASE_DIR / 'static']
