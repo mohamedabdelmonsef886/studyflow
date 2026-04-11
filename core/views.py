@@ -17,7 +17,7 @@ def signup(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            UserProfile.objects.create(user=user)
+            # UserProfile.objects.create(user=user)
             login(request, user)
             return redirect('dashboard')
     else:

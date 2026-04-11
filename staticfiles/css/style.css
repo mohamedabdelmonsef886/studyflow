@@ -1,0 +1,50 @@
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: none;
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.progress {
+    height: 8px;
+    border-radius: 4px;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.btn {
+    border-radius: 5px;
+    font-weight: 500;
+}
+
+.display-1 {
+    font-size: 4rem;
+    font-weight: bold;
+    font-family: monospace;
+}
+
+.badge {
+    font-size: 0.9rem;
+    padding: 5px 10px;
+}
+
+.table th {
+    background-color: #f8f9fa;
+}
+
+@media (max-width: 768px) {
+    .display-1 {
+        font-size: 2.5rem;
+    }
+}
